@@ -87,7 +87,7 @@ find_path(GUROBI_INCLUDE_DIR
           "$ENV{GUROBI_HOME}/include"
     REQUIRED)
 find_library(GUROBI_LIBRARY
-    NAMES gurobi120
+    NAMES gurobi130
     HINTS "${GUROBI_DIR}/lib" "${GUROBI_DIR}/*/lib"
           "$ENV{GUROBI_DIR}/lib" "$ENV{GUROBI_DIR}/*/lib"
           "$ENV{GUROBI_HOME}/lib"
@@ -129,7 +129,7 @@ target_link_libraries(bcp2-mapf PRIVATE fmt::fmt)
 FetchContent_Declare(ranges
     SOURCE_DIR        ranges
     GIT_REPOSITORY    https://github.com/ericniebler/range-v3.git
-    GIT_TAG           ca1388f
+    # GIT_TAG           ca1388f
     GIT_SHALLOW       TRUE
     GIT_PROGRESS      TRUE
     GIT_SUBMODULES    ""
