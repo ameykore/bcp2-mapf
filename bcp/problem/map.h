@@ -15,6 +15,7 @@ Author: Edward Lam <ed@ed-lam.com>
 
 class Map
 {
+  protected:
     Vector<Bool> passable_; // Row-major matrix
     Position width_ = 0;
     Position height_ = 0;
@@ -246,4 +247,6 @@ class Map
   private:
     // Setters
     void resize(const Position width, const Position height);
+  protected:
+    void resize(const Position width, const Position height, const Position elevation);
 };
