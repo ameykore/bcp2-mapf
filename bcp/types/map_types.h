@@ -14,6 +14,13 @@ Author: Edward Lam <ed@ed-lam.com>
 using Position = Int16;
 using Node = Int32;
 
+//orientation with NOde
+struct NodeOrientation
+{
+    Node n;
+    uint8_t orientation; //0,1,2,3
+};
+
 struct XY
 {
     Position x;

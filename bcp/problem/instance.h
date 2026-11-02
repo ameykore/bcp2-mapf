@@ -15,8 +15,8 @@ Author: Edward Lam <ed@ed-lam.com>
 
 struct AgentData
 {
-    Node start;
-    Node target;
+    NodeOrientation start;
+    NodeOrientation target;
 };
 
 struct Instance
