@@ -3,6 +3,7 @@
 .zed/
 **/.DS_Store
 build/
+/build-debug/
 CMakePresets.json
 compile_commands.json
 tracy/
