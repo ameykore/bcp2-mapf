@@ -12,13 +12,13 @@ Author: Edward Lam <ed@ed-lam.com>
 #include <type_traits>
 
 using Position = Int16;
-using Node = Int32;
+// using Node = Int32;
 
 //orientation with NOde
-struct NodeOrientation
+struct Node
 {
-    Node n;
-    uint8_t orientation; //0,1,2,3
+    Int32 n;
+    uint8_t orientation; //0 = Y-axis, 1 = X-axis
 };
 
 struct XY
@@ -79,10 +79,12 @@ static_assert(std::is_trivially_default_constructible_v<XYT>);
 static_assert(std::is_trivially_destructible_v<XYT>);
 static_assert(std::has_unique_object_representations_v<XYT>);
 
+
 struct NodeTime
 {
     Node n;
     Time t;
+    
 
     constexpr NodeTime() noexcept = default;
     constexpr NodeTime(const Node n, const Time t) noexcept :
@@ -91,30 +93,45 @@ struct NodeTime
     {
     }
 
-    inline UInt64 id() const
+    // inline UInt64 id() const
+    // {
+    //     // static_assert(sizeof(NodeTime) == sizeof(UInt64));
+    //     static_assert(sizeof(NodeTime) == 12);
+    //     UInt64 mem;
+    //     std::memcpy(&mem, this, sizeof(UInt64));
+    //     return mem;
+    // }
+
+    inline unsigned __int128 id() const noexcept
     {
-        static_assert(sizeof(NodeTime) == sizeof(UInt64));
-        UInt64 mem;
-        std::memcpy(&mem, this, sizeof(UInt64));
+        unsigned __int128 mem = static_cast<UInt32>(n.n);
+
+        mem = (mem << 8) | static_cast<UInt8>(n.orientation);
+        mem = (mem << 32) | static_cast<UInt32>(t);
+
         return mem;
     }
 
     inline Bool operator==(const NodeTime& other) const
     {
         return this->id() == other.id();
+        //  return n.n == other.n.n &&
+        //    n.orientation == other.n.orientation &&
+        //    t == other.t;
     }
     inline Bool operator!=(const NodeTime& other) const
     {
         return this->id() != other.id();
+        // return !(*this == other);
     }
 };
-static_assert(sizeof(Node) == 4);
+static_assert(sizeof(Node) == 8);
 static_assert(sizeof(Time) == 4);
-static_assert(sizeof(NodeTime) == 8);
+static_assert(sizeof(NodeTime) == 12);
 static_assert(std::is_trivial_v<NodeTime>);
 static_assert(std::is_trivially_default_constructible_v<NodeTime>);
 static_assert(std::is_trivially_destructible_v<NodeTime>);
-static_assert(std::has_unique_object_representations_v<NodeTime>);
+// static_assert(std::has_unique_object_representations_v<NodeTime>);
 
 enum Direction : UInt8
 {
@@ -123,13 +140,14 @@ enum Direction : UInt8
     WEST = 2,   // 0010
     EAST = 3,   // 0011
     WAIT = 4,   // 0100
-    INVALID = 5 // 0101
+    INVALID = 5, // 0101
+    ROTATE = 6 
 };
 
 struct Edge
 {
-    Node n : 29;
-    Direction d : 3;
+    Node n;
+    Direction d;
 
     constexpr Edge() noexcept = default;
     constexpr Edge(const Node n, const Direction d) noexcept :
@@ -138,11 +156,20 @@ struct Edge
     {
     }
 
-    inline UInt32 id() const
+    // inline UInt32 id() const
+    // {
+    //     static_assert(sizeof(Edge) == sizeof(UInt32));
+    //     UInt32 mem;
+    //     std::memcpy(&mem, this, sizeof(UInt32));
+    //     return mem;
+    // }
+    inline UInt64 id() const noexcept
     {
-        static_assert(sizeof(Edge) == sizeof(UInt32));
-        UInt32 mem;
-        std::memcpy(&mem, this, sizeof(UInt32));
+        UInt64 mem = static_cast<UInt32>(n.n);
+
+        mem = (mem << 8) | static_cast<UInt8>(n.orientation);
+        mem = (mem << 8) | static_cast<UInt8>(d);
+
         return mem;
     }
 
@@ -155,17 +182,17 @@ struct Edge
         return this->id() != other.id();
     }
 };
-static_assert(sizeof(Node) == 4);
-static_assert(sizeof(Edge) == 4);
+static_assert(sizeof(Node) == 8);
+static_assert(sizeof(Edge) == 12);
 static_assert(std::is_trivial_v<Edge>);
 static_assert(std::is_trivially_default_constructible_v<Edge>);
 static_assert(std::is_trivially_destructible_v<Edge>);
-static_assert(std::has_unique_object_representations_v<Edge>);
+// static_assert(std::has_unique_object_representations_v<Edge>);
 
 struct EdgeTime
 {
-    Node n : 29;
-    Direction d : 3;
+    Node n;
+    Direction d;
     Time t;
 
     constexpr EdgeTime() noexcept = default;
@@ -190,33 +217,41 @@ struct EdgeTime
     }
     inline Edge e() const noexcept
     {
-        Edge mem;
-        std::memcpy(&mem, this, sizeof(Edge));
-        return mem;
+        return Edge{n, d};
     }
 
-    inline UInt64 id() const
+    // inline UInt64 id() const
+    // {
+    //     static_assert(sizeof(EdgeTime) == sizeof(UInt64));
+    //     UInt64 mem;
+    //     std::memcpy(&mem, this, sizeof(UInt64));
+    //     return mem;
+    // }
+    inline unsigned __int128 id() const noexcept
     {
-        static_assert(sizeof(EdgeTime) == sizeof(UInt64));
-        UInt64 mem;
-        std::memcpy(&mem, this, sizeof(UInt64));
+        unsigned __int128 mem = static_cast<UInt32>(n.n);
+
+        mem = (mem << 8) | static_cast<UInt8>(n.orientation);
+        mem = (mem << 8) | static_cast<UInt8>(d);
+        mem = (mem << 32) | static_cast<UInt32>(t);
+
         return mem;
     }
 
     inline Bool operator==(const EdgeTime& other) const
     {
-        return this->id() == other.id();
+        return id() == other.id();
     }
     inline Bool operator!=(const EdgeTime& other) const
     {
-        return this->id() != other.id();
+        return id() != other.id();
     }
 };
-static_assert(sizeof(EdgeTime) == 8);
+static_assert(sizeof(EdgeTime) == 16);
 static_assert(std::is_trivial_v<EdgeTime>);
 static_assert(std::is_trivially_default_constructible_v<EdgeTime>);
 static_assert(std::is_trivially_destructible_v<EdgeTime>);
-static_assert(std::has_unique_object_representations_v<EdgeTime>);
+// static_assert(std::has_unique_object_representations_v<EdgeTime>);
 
 struct AgentNode
 {
@@ -230,11 +265,20 @@ struct AgentNode
     {
     }
 
-    inline UInt64 id() const
+    // inline UInt64 id() const
+    // {
+    //     static_assert(sizeof(AgentNode) == sizeof(UInt64));
+    //     UInt64 mem;
+    //     std::memcpy(&mem, this, sizeof(UInt64));
+    //     return mem;
+    // }
+    inline unsigned __int128 id() const noexcept
     {
-        static_assert(sizeof(AgentNode) == sizeof(UInt64));
-        UInt64 mem;
-        std::memcpy(&mem, this, sizeof(UInt64));
+        unsigned __int128 mem = static_cast<UInt32>(a);
+
+        mem = (mem << 32) | static_cast<UInt32>(n.n);
+        mem = (mem << 8) | static_cast<UInt8>(n.orientation);
+
         return mem;
     }
 
@@ -247,11 +291,11 @@ struct AgentNode
         return this->id() != other.id();
     }
 };
-static_assert(sizeof(AgentNode) == 8);
+static_assert(sizeof(AgentNode) == 12);
 static_assert(std::is_trivial_v<AgentNode>);
 static_assert(std::is_trivially_default_constructible_v<AgentNode>);
 static_assert(std::is_trivially_destructible_v<AgentNode>);
-static_assert(std::has_unique_object_representations_v<AgentNode>);
+// static_assert(std::has_unique_object_representations_v<AgentNode>);
 
 struct AgentTime
 {
@@ -307,11 +351,21 @@ struct AgentNodeTime
         return NodeTime(n, t);
     }
 
-    inline UInt64 id() const
+    // inline UInt64 id() const
+    // {
+    //     static_assert(sizeof(AgentNodeTime) == sizeof(UInt64));
+    //     UInt64 mem;
+    //     std::memcpy(&mem, this, sizeof(UInt64));
+    //     return mem;
+    // }
+    inline unsigned __int128 id() const noexcept
     {
-        static_assert(sizeof(AgentNodeTime) == sizeof(UInt64));
-        UInt64 mem;
-        std::memcpy(&mem, this, sizeof(UInt64));
+        unsigned __int128 mem = static_cast<UInt16>(a);
+
+        mem = (mem << 16) | static_cast<UInt16>(t);
+        mem = (mem << 32) | static_cast<UInt32>(n.n);
+        mem = (mem << 8) | static_cast<UInt8>(n.orientation);
+
         return mem;
     }
 
@@ -324,11 +378,11 @@ struct AgentNodeTime
         return this->id() != other.id();
     }
 };
-static_assert(sizeof(AgentNodeTime) == 8);
+static_assert(sizeof(AgentNodeTime) == 12);
 static_assert(std::is_trivial_v<AgentNodeTime>);
 static_assert(std::is_trivially_default_constructible_v<AgentNodeTime>);
 static_assert(std::is_trivially_destructible_v<AgentNodeTime>);
-static_assert(std::has_unique_object_representations_v<AgentNodeTime>);
+// static_assert(std::has_unique_object_representations_v<AgentNodeTime>);
 
 struct AgentAgent
 {
