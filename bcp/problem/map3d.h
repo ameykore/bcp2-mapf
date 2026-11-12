@@ -50,17 +50,32 @@ class Map3D : public Map {
 
         inline Node get_destination(const Node n, const Direction d) const
         {
-            if (d == Direction::CLIMB_UP)
-            {
-                return Node{climb_up(n.n), n.orientation};
-            }
+            const Int32 row = width();
+            const Int32 layer = static_cast<Int32>(width()) * height();
 
-            if (d == Direction::CLIMB_DOWN)
+            switch (d)
             {
-                return Node{climb_down(n.n), n.orientation};
-            }
+                case Direction::NORTH_UP:
+                    return Node{n.n - row + layer, n.orientation};
+                case Direction::SOUTH_UP:
+                    return Node{n.n + row + layer, n.orientation};
+                case Direction::WEST_UP:
+                    return Node{n.n - 1 + layer, n.orientation};
+                case Direction::EAST_UP:
+                    return Node{n.n + 1 + layer, n.orientation};
 
-            return Map::get_destination(n, d);
+                case Direction::NORTH_DOWN:
+                    return Node{n.n - row - layer, n.orientation};
+                case Direction::SOUTH_DOWN:
+                    return Node{n.n + row - layer, n.orientation};
+                case Direction::WEST_DOWN:
+                    return Node{n.n - 1 - layer, n.orientation};
+                case Direction::EAST_DOWN:
+                    return Node{n.n + 1 - layer, n.orientation};
+
+                default:
+                    return Map::get_destination(n, d);
+            }
         }
 
     private:
