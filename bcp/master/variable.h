@@ -47,6 +47,7 @@ class Variable
     Variable(Variable&&) noexcept = delete;
     Variable& operator=(const Variable&) noexcept = delete;
     Variable& operator=(Variable&&) noexcept = delete;
+    // this is allocation memory to store a path
     static auto construct(const Agent a, const Time path_length)
     {
         DEBUG_ASSERT(path_length >= 1);

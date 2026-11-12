@@ -163,7 +163,10 @@ void LengthBrancher::add_pricing_costs(const BrancherData* const data)
 
     // Get the constraint data.
     const auto& [finish_a, nt, dir] = *static_cast<const LengthBrancherData*>(data);
-    DEBUG_ASSERT(nt.n == instance_.agents[finish_a].target);
+    DEBUG_ASSERT(
+        nt.n.n == instance_.agents[finish_a].target.n &&
+        nt.n.orientation == instance_.agents[finish_a].target.orientation
+    );
 
     // Add the penalty.
     auto& pricer = problem_.pricer();
@@ -188,7 +191,10 @@ void LengthBrancher::disable_vars(const BrancherData* const data)
 
     // Get the constraint data.
     const auto& [finish_a, nt, dir] = *static_cast<const LengthBrancherData*>(data);
-    DEBUG_ASSERT(nt.n == instance_.agents[finish_a].target);
+    DEBUG_ASSERT(
+        nt.n.n == instance_.agents[finish_a].target.n &&
+        nt.n.orientation == instance_.agents[finish_a].target.orientation
+    );
 
     // Disable paths of the same agent if it doesn't reach the target at the required times.
     DEBUGLN("Length brancher disabling paths incompatible with decision on agent "

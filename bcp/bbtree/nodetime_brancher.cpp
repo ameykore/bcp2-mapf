@@ -257,7 +257,7 @@ Decisions NodeTimeBrancher::branch()
     Bool best_move_and_wait = false;
     Time best_shortest_path_length = TIME_MAX;
     Size64 best_num_paths = 0;
-    NodeTime best_nt{0, TIME_MAX};
+    NodeTime best_nt{{0,0}, TIME_MAX};
     Real64 best_val = 0.0;
     Agent best_a = -1;
 

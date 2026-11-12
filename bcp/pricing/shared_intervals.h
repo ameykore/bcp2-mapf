@@ -47,7 +47,7 @@ class SharedIntervals
     // Getters
     const Interval* get_intervals(const Node n, const Direction d) const
     {
-        DEBUG_ASSERT(n == -1 || map_[map_.get_destination(Edge{n, d})]);
+        DEBUG_ASSERT(n.n == -1 || map_[map_.get_destination(Edge{n, d})]);
         const Interval* intervals = &default_interval_;
         if (auto it = interval_set_.find(Edge{n, d}); it != interval_set_.end())
         {
@@ -57,7 +57,7 @@ class SharedIntervals
     }
     const Interval* get_end_intervals() const
     {
-        return get_intervals(-1, static_cast<Direction>(4));
+        return get_intervals(Node{-1, 0}, static_cast<Direction>(4));
     }
     Cost get_finish_time_h(const Time t) const
     {

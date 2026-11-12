@@ -37,7 +37,8 @@ class SharedTimeIntervalAStar
         PriorityQueueSizeType pq_index;
         Byte bitset[];
 
-        static const Size64 data_size = 8 * 5 + 2 * 2 + 4 * 1;
+        // static const Size64 data_size = 8 * 5 + 2 * 2 + 4 * 1;
+        static const Size64 data_size = 56;
         static const Size64 padding_size = 0;
     };
     static_assert(sizeof(FeasibleLabel) == FeasibleLabel::data_size + FeasibleLabel::padding_size);
@@ -53,11 +54,11 @@ class SharedTimeIntervalAStar
         UInt16 reservations;
         Byte bitset[];
 
-        static const Size64 data_size = 8 * 4 + 4 * 1 + 2 * 3;
+        // static const Size64 data_size = 8 * 4 + 4 * 1 + 2 * 3;
+        static const Size64 data_size = 50;
         static const Size64 padding_size = 6;
     };
-    static_assert(sizeof(InfeasibleLabel) ==
-                  InfeasibleLabel::data_size + InfeasibleLabel::padding_size);
+    static_assert(sizeof(InfeasibleLabel) == InfeasibleLabel::data_size + InfeasibleLabel::padding_size);
 
     // Priority queue data structures
     template <Bool feasible>
@@ -183,13 +184,20 @@ class SharedTimeIntervalAStar
     void reset();
 
     // Constants
-    constexpr static inline Node end_n()
+    constexpr static inline Node end_n(const UInt8 orientation)
     {
-        return -1;
+        return Node{-1, orientation};
+    }
+    // ADD YOUR NEW FUNCTION HERE
+    static inline Size64 closed_index(const Node n, const UInt8 orientation)
+    {
+
+        return 2 * static_cast<Size64>(n.n + 1) + orientation;
     }
     constexpr static inline Bool is_end(const NodeTime nt)
     {
-        return nt.n == end_n();
+        // return nt.n == end_n();
+        return nt.n.n == -1;
     }
     template <Bool feasible>
     constexpr static inline Time default_edge_cost()
@@ -208,7 +216,7 @@ class SharedTimeIntervalAStar
     template <Bool feasible, Bool towards_end>
     void generate_start();
     template <Bool feasible, Bool towards_end>
-    void generate_nodetimes(const Node next_n, const Direction d, Label<feasible>* current);
+    void generate_nodetimes(const Node next_n, const Direction d, const UInt8 next_orientation, Label<feasible>* current);
     template <Bool feasible, Bool towards_end>
     void generate_waypoint(Label<feasible>* current);
     template <Bool feasible>

@@ -776,7 +776,7 @@ void Problem::check_solution(const Vector<Variable*>& solution, const Cost cost)
     HashMap<Node, Time> target_blocked;
     for (Agent a = 0; a < A; ++a)
     {
-        const auto target = instance_.agents[a].target;
+        const auto target = instance_.agents[a].target.n;
         target_blocked[target] = TIME_MAX;
         target_crossed[target] = -1;
     }
@@ -784,16 +784,16 @@ void Problem::check_solution(const Vector<Variable*>& solution, const Cost cost)
     {
         // Check the start and target.
         const auto& path = solution[a]->path();
-        ASSERT(path.front().n == instance_.agents[a].start,
+        ASSERT(path.front().n == instance_.agents[a].start.n,
                "The path for agent {} starts at {} but its starting location is {}",
                a,
                format_node(path.front().n, map),
-               format_node(instance_.agents[a].start, map));
-        ASSERT(path.back().n == instance_.agents[a].target,
+               format_node(instance_.agents[a].start.n, map));
+        ASSERT(path.back().n == instance_.agents[a].target.n,
                "The path for agent {} ends at {} but its target location is {}",
                a,
                format_node(path.back().n, map),
-               format_node(instance_.agents[a].target, map));
+               format_node(instance_.agents[a].target.n, map));
 
         // Check if the path is in conflict with paths already selected.
         {

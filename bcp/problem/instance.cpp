@@ -70,8 +70,8 @@ Instance::Instance(const FilePath& scenario_path_, const Agent agent_limit_) :
         // Store the agent.
         const auto a = num_agents();
         auto& [start, target] = agents.emplace_back();
-        start = map.get_n(start_x, start_y);
-        target = map.get_n(target_x, target_y);
+        start.n = map.get_n(start_x, start_y);
+        target.n = map.get_n(target_x, target_y);
         ASSERT(agent_map_path == first_agent_map_path, "Agent {} uses a different map", a);
         ASSERT(agent_map_width == map.width(),
                "Map width of agent {} does not match actual map size",
@@ -79,8 +79,8 @@ Instance::Instance(const FilePath& scenario_path_, const Agent agent_limit_) :
         ASSERT(agent_map_height == map.height(),
                "Map height of agent {} does not match actual map size",
                a);
-        ASSERT(start < map.size() && map[start], "Agent {} starts at an obstacle", a);
-        ASSERT(target < map.size() && map[target], "Agent {} ends at an obstacle", a);
+        ASSERT(start.n < map.size() && map[start.n], "Agent {} starts at an obstacle", a);
+        ASSERT(target.n < map.size() && map[target.n], "Agent {} ends at an obstacle", a);
     }
     ASSERT(agent_limit_ == -1 || num_agents() == agent_limit_,
            "Cannot read {} agents from a scenario with only {} agents",

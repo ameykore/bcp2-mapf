@@ -19,7 +19,8 @@ class RectanglePenalties
         Cost cost;
         EdgeTime first_ets[2];
         Time length;
-        Node n_increment;
+        // Node n_increment;
+        Int32 n_increment;
     };
 
     Vector<RectanglePenalty> data_;
@@ -55,7 +56,7 @@ class RectanglePenalties
 
     // Add a penalty for crossing the boundaries of a rectangle
     void add(const Cost cost, const EdgeTime first_entry, const EdgeTime first_exit,
-             const Time length, const Node n_increment)
+             const Time length, const Int32 n_increment)
     {
         DEBUG_ASSERT(cost >= 0);
         DEBUG_ASSERT(first_entry.t >= 0);
@@ -81,8 +82,13 @@ class RectanglePenalties
             const auto first_entry = first_ets[0];
             const auto first_exit = first_ets[1];
             const EdgeTime last_entry{
-                first_entry.n + n_increment * length, d, first_entry.t + length};
-            const EdgeTime last_exit{first_exit.n + n_increment * length, d, first_exit.t + length};
+                                        Node{first_entry.n.n + n_increment * length, first_entry.n.orientation},
+                                        d, first_entry.t + length
+                                    };
+            const EdgeTime last_exit{
+                                        Node{first_exit.n.n + n_increment * length, first_exit.n.orientation},
+                                        d, first_exit.t + length
+                                    };
             PRINTLN("{:>26s}{:>26s}{:>26s}{:>26s}{:>10d}{:>12s}{:>18.2f}",
                     format_edgetime(first_entry, map),
                     format_edgetime(last_entry, map),

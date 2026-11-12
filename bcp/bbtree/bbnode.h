@@ -20,9 +20,9 @@ class Variable;
 // Branch-and-bound tree node
 struct BBNode
 {
-    UInt32 id;
-    UInt32 depth;
-    Cost lb;
+    UInt32 id; //ID of Node
+    UInt32 depth; //how deep or level in B&B tree
+    Cost lb; //just double
     SharedPtr<BBNode> parent;
 
     Brancher* brancher;

@@ -61,6 +61,7 @@ MasterProblem::~MasterProblem()
     delete[] agent_constraints_;
 }
 
+// this addes new candidate path to problem
 void MasterProblem::add_column(UniquePtr<Variable>&& variable_ptr_input, const Cost reduced_cost)
 {
     ZoneScopedC(TRACY_COLOUR);
@@ -72,8 +73,8 @@ void MasterProblem::add_column(UniquePtr<Variable>&& variable_ptr_input, const C
     // Get the path.
     const auto a = variable.a();
     const auto& path = variable.path();
-    DEBUG_ASSERT(path.front().n == instance_.agents[a].start);
-    DEBUG_ASSERT(path.back().n == instance_.agents[a].target);
+    DEBUG_ASSERT(path.front().n == instance_.agents[a].start.n);
+    DEBUG_ASSERT(path.back().n == instance_.agents[a].target.n);
 
     // Handle small floating point errors.
     if (reduced_cost >= -LENIENT_EPS)

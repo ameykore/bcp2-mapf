@@ -65,12 +65,12 @@ class Separator
     static inline Bool calculate_nodetime_coeff(const NodeTime nt, const Path& path)
     {
         const auto t = std::min<Time>(path.size() - 1, nt.t);
-        return path[t].n == nt.n;
+        return path[t].n.n == nt.n.n;
     }
     static inline Bool calculate_edgetime_coeff(const EdgeTime et, const Path& path)
     {
         return (et.t < path.size() - 1 && path[et.t] == et.e()) ||
-               (et.d == Direction::WAIT && et.t >= path.size() - 1 && path.back().n == et.n);
+               (et.d == Direction::WAIT && et.t >= path.size() - 1 && path.back().n.n == et.n.n);
     }
     static inline Bool calculate_move_edgetime_coeff(const EdgeTime et, const Path& path)
     {
@@ -81,6 +81,6 @@ class Separator
     {
         DEBUG_ASSERT(et.d == Direction::WAIT);
         return (et.t < path.size() - 1 && path[et.t] == et.e()) ||
-               (et.t >= path.size() - 1 && path.back().n == et.n);
+               (et.t >= path.size() - 1 && path.back().n.n == et.n.n);
     }
 };

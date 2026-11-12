@@ -19,6 +19,13 @@ struct Node
 {
     Int32 n;
     uint8_t orientation; //0 = Y-axis, 1 = X-axis
+
+    inline Bool operator==(const Node& other) const
+    {
+        return n == other.n &&
+            orientation == other.orientation;
+    }
+    constexpr auto operator<=>(const Node& other) const = default;
 };
 
 struct XY
@@ -114,10 +121,10 @@ struct NodeTime
 
     inline Bool operator==(const NodeTime& other) const
     {
-        return this->id() == other.id();
-        //  return n.n == other.n.n &&
-        //    n.orientation == other.n.orientation &&
-        //    t == other.t;
+        // return this->id() == other.id();
+         return n.n == other.n.n &&
+           n.orientation == other.n.orientation &&
+           t == other.t;
     }
     inline Bool operator!=(const NodeTime& other) const
     {
@@ -141,7 +148,9 @@ enum Direction : UInt8
     EAST = 3,   // 0011
     WAIT = 4,   // 0100
     INVALID = 5, // 0101
-    ROTATE = 6 
+    ROTATE = 6,
+    CLIMB_UP = 7,
+    CLIMB_DOWN = 8 
 };
 
 struct Edge

@@ -174,16 +174,19 @@ Decisions NegativeNodeTimeBrancher::branch()
         }
     ASSERT(best_ant1->a >= 0, "Negative nodetime branching failed to make a decision");
     ASSERT((best_ant1->a != best_ant2->a && best_ant1->nt == best_ant2->nt) ||
-               (best_ant1->a == best_ant2->a && best_ant1->nt.t == best_ant2->nt.t &&
-                best_ant1->nt.n != best_ant2->nt.n),
-           "Negative nodetime branching decided on an invalid branching - agent {} node {} time "
-           "{}, agent {} node {} time {}",
-           best_ant1->a,
-           best_ant1->nt.n,
-           best_ant1->nt.t,
-           best_ant2->a,
-           best_ant2->nt.n,
-           best_ant2->nt.t);
+                (best_ant1->a == best_ant2->a && best_ant1->nt.t == best_ant2->nt.t &&
+                    best_ant1->nt.n != best_ant2->nt.n),
+            "Negative nodetime branching decided on an invalid branching - "
+            "agent {} node {} orientation {} time {}, "
+            "agent {} node {} orientation {} time {}",
+            best_ant1->a,
+            best_ant1->nt.n.n,
+            static_cast<Int32>(best_ant1->nt.n.orientation),
+            best_ant1->nt.t,
+            best_ant2->a,
+            best_ant2->nt.n.n,
+            static_cast<Int32>(best_ant2->nt.n.orientation),
+            best_ant2->nt.t);
     DEBUGLN("Negative nodetime brancher branching on agent {} and nodetime {} in B&B node {}",
             best_a,
             format_nodetime(best_nt, instance_.map),

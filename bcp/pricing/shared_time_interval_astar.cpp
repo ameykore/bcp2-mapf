@@ -77,7 +77,8 @@ SharedTimeIntervalAStar::SharedTimeIntervalAStar(const Instance& instance, Probl
     {
         ZoneScopedNC("Allocate closed set", TRACY_COLOUR);
 
-        closed_ = static_cast<void**>(std::malloc((map_.size() + 1) * sizeof(void*)));
+        // closed_ = static_cast<void**>(std::malloc((map_.size() + 1) * sizeof(void*)));
+        closed_ = static_cast<void**>(std::malloc(2*(map_.size().n + 1) * sizeof(void*)));
         ++closed_;
     }
 
@@ -103,7 +104,7 @@ SharedTimeIntervalAStar::~SharedTimeIntervalAStar()
 {
     ZoneScopedC(TRACY_COLOUR);
 
-    --closed_;
+    // --closed_;
     std::free(closed_);
 }
 
@@ -247,6 +248,7 @@ void SharedTimeIntervalAStar::generate_start()
 
     // Push into the priority queue.
     next->nt = next_nt;
+    next->orientation = start_orientation_;
     next = push<feasible, false>(next);
 
     // Print.
@@ -286,8 +288,10 @@ void SharedTimeIntervalAStar::generate_start()
 #endif
 }
 
+//next A* state being created
 template <Bool feasible, Bool towards_end>
-void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direction d,
+void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direction d,  
+                                                 const UInt8 next_orientation,
                                                  Label<feasible>* current)
 {
     // ZoneScopedC(TRACY_COLOUR);
@@ -416,6 +420,7 @@ void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direct
         // Allocate memory for the label.
         auto next = new (label_storage_.get_buffer<false, false>()) Label<feasible>;
         std::memcpy(next, current, label_storage_.object_size());
+        next->orientation = next_orientation;
 
         // Calculate the g value.
         next->g += wait_cost + default_edge_cost<feasible>() + move_interval->cost;
@@ -968,7 +973,7 @@ void SharedTimeIntervalAStar::generate_end(Label<feasible>* current)
 
         // Get the next nodetime.
         const auto next_t = wait_end;
-        const NodeTime next_nt{end_n(), next_t};
+        const NodeTime next_nt{end_n(current_nt.n.orientation), next_t};
 
         // Exit if time infeasible.
         if (next_t > latest_target_time_)
@@ -1110,22 +1115,63 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
     // Push to four directions.
     const auto current_nt = current->nt;
     const auto current_n = current_nt.n;
-    if (const auto next_n = map_.get_north(current_n); map_[next_n])
+    const auto orientation = current->orientation;
+    // Orientation 0: Y-axis movement
+    if (orientation == 0)
     {
-        generate_nodetimes<feasible, towards_end>(next_n, Direction::NORTH, current);
+        if (const auto next_n = map_.get_north(current_n); map_[next_n])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                next_n, Direction::NORTH, current->orientation, current);
+        }
+
+        if (const auto next_n = map_.get_south(current_n); map_[next_n])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                next_n, Direction::SOUTH, current->orientation, current);
+        }
     }
-    if (const auto next_n = map_.get_south(current_n); map_[next_n])
+    // Orientation 1: X-axis movement
+    else
     {
-        generate_nodetimes<feasible, towards_end>(next_n, Direction::SOUTH, current);
+        DEBUG_ASSERT(orientation == 1);
+
+        if (const auto next_n = map_.get_west(current_n); map_[next_n])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                next_n, Direction::WEST, current->orientation, current);
+        }
+
+        if (const auto next_n = map_.get_east(current_n); map_[next_n])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                next_n, Direction::EAST, current->orientation, current);
+        }
     }
-    if (const auto next_n = map_.get_west(current_n); map_[next_n])
-    {
-        generate_nodetimes<feasible, towards_end>(next_n, Direction::WEST, current);
-    }
-    if (const auto next_n = map_.get_east(current_n); map_[next_n])
-    {
-        generate_nodetimes<feasible, towards_end>(next_n, Direction::EAST, current);
-    }
+    // if (const auto next_n = map_.get_north(current_n); map_[next_n])
+    // {
+    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::NORTH, current);
+    // }
+    // if (const auto next_n = map_.get_south(current_n); map_[next_n])
+    // {
+    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::SOUTH, current);
+    // }
+    // if (const auto next_n = map_.get_west(current_n); map_[next_n])
+    // {
+    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::WEST, current);
+    // }
+    // if (const auto next_n = map_.get_east(current_n); map_[next_n])
+    // {
+    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::EAST, current);
+    // }
+
+    // Generate a rotation successor.
+    DEBUG_ASSERT(orientation <= 1);
+
+    const UInt8 rotated_orientation =
+        static_cast<UInt8>(1 - orientation);
+
+    generate_nodetimes<feasible, towards_end>(current_n,Direction::ROTATE,rotated_orientation,current);
 
     // Push to the waypoint if at the correct location.
     if constexpr (!towards_end)
@@ -1176,10 +1222,11 @@ SharedTimeIntervalAStar::Label<feasible>* SharedTimeIntervalAStar::push(Label<fe
     // Get the new label.
     const auto nt = next->nt;
     const auto next_t = nt.t;
+    const auto index = closed_index(nt.n, next->orientation);
 
     // Check ordering.
 #ifdef DEBUG
-    for (auto current = static_cast<Label<feasible>*>(closed_[nt.n]); current && current->next;
+    for (auto current = static_cast<Label<feasible>*>(closed_[index]); current && current->next;
          current = current->next)
     {
         DEBUG_ASSERT(current->nt.t <= current->next->nt.t);
@@ -1198,7 +1245,7 @@ SharedTimeIntervalAStar::Label<feasible>* SharedTimeIntervalAStar::push(Label<fe
     // dominated.
     const auto next_once_off_bitset = get_once_off_bitset<feasible>(next);
     const auto next_rectangle_bitset = get_rectangle_bitset<feasible>(next);
-    auto first = reinterpret_cast<Label<feasible>**>(&closed_[nt.n]);
+    auto first = reinterpret_cast<Label<feasible>**>(&closed_[index]);
     auto insert_prev_next = first;
     const auto current = next->parent;
     for (auto existing = *insert_prev_next; existing && existing->nt.t <= nt.t;
@@ -1346,7 +1393,7 @@ SharedTimeIntervalAStar::Label<feasible>* SharedTimeIntervalAStar::push(Label<fe
 
     // Check ordering.
 #ifdef DEBUG
-    for (auto current = static_cast<Label<feasible>*>(closed_[nt.n]); current && current->next;
+    for (auto current = static_cast<Label<feasible>*>(closed_[index]); current && current->next;
          current = current->next)
     {
         DEBUG_ASSERT(current->nt.t <= current->next->nt.t);
@@ -1380,18 +1427,21 @@ void SharedTimeIntervalAStar::add_path(Label<feasible>* end)
 
             last = end->parent;
             NodeTime nt{last->nt.n, end->nt.t};
+            UInt8 next_orientation = last->orientation;
             DEBUG_ASSERT(nt.n == target_);
             path[nt.t] = Edge{nt.n, Direction::INVALID};
             for (auto label = (end->nt.t == last->nt.t ? last->parent : last); label;
                  label = label->parent)
             {
                 const auto prev_nt = label->nt;
+                const Direction d = (prev_nt.n == nt.n && label->orientation != next_orientation) ? Direction::ROTATE: map_.get_direction(prev_nt.n, nt.n);
                 path[nt.t - 1] = Edge{prev_nt.n, map_.get_direction(prev_nt.n, nt.n)};
                 for (Time t = nt.t - 2; t >= prev_nt.t; --t)
                 {
                     path[t] = Edge{prev_nt.n, Direction::WAIT};
                 }
                 nt = prev_nt;
+                next_orientation = label->orientation;  
             }
         }
 
@@ -1430,6 +1480,7 @@ void SharedTimeIntervalAStar::add_path(Label<feasible>* end)
 
         // Add the column.
 #ifdef USE_SHARED_TIME_INTERVAL_ASTAR_PRICER
+        //here ownership is tranffered using move from variable_ptr
         problem_.master().add_column(std::move(variable_ptr), reduced_cost);
         ++num_added_;
 #endif
@@ -1448,9 +1499,13 @@ Cost SharedTimeIntervalAStar::solve(const Agent a, Vector<NodeTime>& waypoints,
     ZoneScopedC(TRACY_COLOUR);
 
     // Store the input data.
+    // a_ = a;
+    // start_ = NodeTime{instance_.agents[a].start, 0};
+    // target_ = instance_.agents[a].target;
     a_ = a;
-    start_ = NodeTime{instance_.agents[a].start, 0};
-    target_ = instance_.agents[a].target;
+    start_ = NodeTime{instance_.agents[a].start.n, 0};
+    start_orientation_ = instance_.agents[a].start.orientation;
+    target_ = instance_.agents[a].target.n;
     waypoints_ = &waypoints;
     constant_ = constant;
     intervals_ = &intervals;
@@ -1564,7 +1619,7 @@ Cost SharedTimeIntervalAStar::solve(const Agent a, Vector<NodeTime>& waypoints,
         // Clear data structures from the previous iteration.
         label_storage_.reset(Label<feasible>::data_size + once_off_bitset_size_ +
                              rectangle_bitset_size_);
-        std::memset(closed_ - 1, 0, (map_.size() + 1) * sizeof(void*));
+        std::memset(closed_, 0, 2*(map_.size() + 1) * sizeof(void*));
         open<feasible>().clear();
     }
 

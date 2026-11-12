@@ -108,13 +108,13 @@ void CorridorConflictSeparator::separate()
                                 const auto a1_start = instance_.agents[a1].start;
                                 const auto a2_start = instance_.agents[a2].start;
                                 const auto a1_time_to_corridor_begin =
-                                    distance_heuristic_.get_h(a1_start)[a1_begin.n];
+                                    distance_heuristic_.get_h(a1_start)[a1_begin.n.n];
                                 const auto a2_time_to_corridor_begin =
-                                    distance_heuristic_.get_h(a2_start)[a2_begin.n];
+                                    distance_heuristic_.get_h(a2_start)[a2_begin.n.n];
                                 const auto a1_time_to_corridor_end =
-                                    distance_heuristic_.get_h(a1_start)[a1_end.n];
+                                    distance_heuristic_.get_h(a1_start)[a1_end.n.n];
                                 const auto a2_time_to_corridor_end =
-                                    distance_heuristic_.get_h(a2_start)[a2_end.n];
+                                    distance_heuristic_.get_h(a2_start)[a2_end.n.n];
 
                                 // If the agents can reach the end of the corridor before the start
                                 // of the corridor, then the agent turned around and there is no
@@ -133,10 +133,10 @@ void CorridorConflictSeparator::separate()
                                 blocked_map.set_obstacle(a2_et.n);
                                 const auto a1_detour_time_to_corridor_end =
                                     distance_heuristic_.get_h_using_map(a1_start,
-                                                                        blocked_map)[a1_end.n];
+                                                                        blocked_map)[a1_end.n.n];
                                 const auto a2_detour_time_to_corridor_end =
                                     distance_heuristic_.get_h_using_map(a2_start,
-                                                                        blocked_map)[a2_end.n];
+                                                                        blocked_map)[a2_end.n.n];
                                 DEBUG_ASSERT(a1_et.n != a1_begin.n);
                                 DEBUG_ASSERT(a1_et.n != a1_end.n);
                                 DEBUG_ASSERT(a1_et.n != a2_begin.n);

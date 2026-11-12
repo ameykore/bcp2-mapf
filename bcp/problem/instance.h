@@ -7,7 +7,8 @@ Author: Edward Lam <ed@ed-lam.com>
 
 #pragma once
 
-#include "problem/map.h"
+// #include "problem/map.h"
+#include "problem/map3d.h"
 #include "types/basic_types.h"
 #include "types/file_system.h"
 #include "types/string.h"
@@ -15,8 +16,8 @@ Author: Edward Lam <ed@ed-lam.com>
 
 struct AgentData
 {
-    NodeOrientation start;
-    NodeOrientation target;
+    Node start;
+    Node target;
 };
 
 struct Instance
@@ -27,7 +28,7 @@ struct Instance
     FilePath map_path;
 
     // Instance
-    Map map;
+    Map3D map;
     Vector<AgentData> agents;
 
   public:

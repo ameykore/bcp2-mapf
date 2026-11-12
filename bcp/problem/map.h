@@ -33,7 +33,7 @@ class Map
     Map(const FilePath& map_path);
 
     // Getters
-    inline Node size() const
+    inline Int32 size() const
     {
         return passable_.size();
     }
@@ -51,58 +51,56 @@ class Map
     }
     inline Bool operator[](const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
-        return passable_[n];
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
+        return passable_[n.n];
     }
-    inline Node get_n(const Position x, const Position y) const
+    inline Int32 get_n(const Position x, const Position y) const
     {
         return y * width_ + x;
     }
-    inline Node get_n(const Pair<Position, Position> xy) const
+    inline Int32 get_n(const Pair<Position, Position> xy) const
     {
         return get_n(xy.first, xy.second);
     }
-    inline Node get_n(const XY xy) const
+    inline Int32 get_n(const XY xy) const
     {
         return get_n(xy.x, xy.y);
     }
-    inline Position get_x(const Node n) const
+    inline Position get_x(const Int32 n) const
     {
-        // DEBUG_ASSERT(0 <= n && n < size());
-        return n % width_;
+        return static_cast<Position>(n % width_);
     }
-    inline Position get_y(const Node n) const
+    inline Position get_y(const Int32 n) const
     {
-        // DEBUG_ASSERT(0 <= n && n < size());
-        return n / width_;
+        return static_cast<Position>(n / width_);
     }
-    inline XY get_xy(const Node n) const
+    inline XY get_xy(const Int32 n) const
     {
         return {get_x(n), get_y(n)};
     }
     inline Node get_north(const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
-        return n - width_;
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
+        return Node{n.n - width_, n.orientation};
     }
     inline Node get_south(const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
-        return n + width_;
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
+        return Node{n.n + width_, n.orientation};
     }
     inline Node get_west(const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
-        return n - 1;
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
+        return Node{n.n - 1, n.orientation};
     }
     inline Node get_east(const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
-        return n + 1;
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
+        return Node{n.n + 1, n.orientation};
     }
     inline Node get_wait(const Node n) const
     {
-        DEBUG_ASSERT(0 <= n && n < size());
+        DEBUG_ASSERT(0 <= n.n && n.n < size());
         return n;
     }
     inline Size64 get_degree(const Node n) const
@@ -112,46 +110,57 @@ class Map
     }
     inline Direction get_direction(const Node n1, const Node n2) const
     {
-        // Check.
-        DEBUG_ASSERT(n2 == get_north(n1) || n2 == get_south(n1) || n2 == get_west(n1) ||
-                     n2 == get_east(n1) || n2 == get_wait(n1));
+        // Same position.
+        if (n1.n == n2.n)
+        {
+            return n1.orientation == n2.orientation
+                    ? Direction::WAIT
+                    : Direction::ROTATE;
+        }
 
-        // Return direction.
-        if (n2 == get_north(n1))
-        {
+        // Horizontal movement must preserve orientation.
+        DEBUG_ASSERT(n1.orientation == n2.orientation);
+
+        if (n2.n == n1.n - width_)
             return Direction::NORTH;
-        }
-        else if (n2 == get_south(n1))
-        {
+
+        if (n2.n == n1.n + width_)
             return Direction::SOUTH;
-        }
-        else if (n2 == get_west(n1))
-        {
+
+        if (n2.n == n1.n - 1)
             return Direction::WEST;
-        }
-        else if (n2 == get_east(n1))
-        {
+
+        if (n2.n == n1.n + 1)
             return Direction::EAST;
-        }
-        else
-        {
-            return Direction::WAIT;
-        }
+
+        DEBUG_ASSERT(false);
+        return Direction::INVALID;
     }
-    inline Node get_direction_n_offset(const Direction d) const
+    inline Int32 get_direction_n_offset(const Direction d) const
     {
-        return width_ * (static_cast<Node>(d == Direction::SOUTH) -
-                         static_cast<Node>(d == Direction::NORTH)) +
-               (static_cast<Node>(d == Direction::EAST) - static_cast<Node>(d == Direction::WEST));
+        return width_ * (static_cast<Int32>(d == Direction::SOUTH) -
+                         static_cast<Int32>(d == Direction::NORTH)) +
+               (static_cast<Int32>(d == Direction::EAST) - static_cast<Int32>(d == Direction::WEST));
     }
     inline Node get_destination(const Node n, const Direction d) const
     {
         DEBUG_ASSERT(d == Direction::NORTH || d == Direction::SOUTH || d == Direction::EAST ||
-                     d == Direction::WEST || d == Direction::WAIT);
-        return n + get_direction_n_offset(d);
+                     d == Direction::WEST || d == Direction::WAIT || d == Direction::ROTATE);
+        
+        
+        Node next = n;
+        next.n += get_direction_n_offset(d);
+
+        if (d == Direction::ROTATE)
+        {
+            DEBUG_ASSERT(next.orientation <= 1);
+            next.orientation = static_cast<UInt8>(1 - next.orientation);
+        }
+
+        return next;
     }
     inline Node get_destination(const Edge e) const
-    {
+    { //where the robot would end up after given action
         return get_destination(e.n, e.d);
     }
     inline Node get_destination(const EdgeTime et) const
@@ -160,11 +169,11 @@ class Map
     }
     inline XY get_destination_xy(const Edge e) const
     {
-        return get_xy(get_destination(e));
+        return get_xy(get_destination(e).n);
     }
     inline XY get_destination_xy(const EdgeTime et) const
     {
-        return get_xy(get_destination(et));
+        return get_xy(get_destination(et).n);
     }
     inline Edge get_undirected_edge(const Edge e) const
     {
