@@ -149,8 +149,16 @@ enum Direction : UInt8
     WAIT = 4,   // 0100
     INVALID = 5, // 0101
     ROTATE = 6,
-    CLIMB_UP = 7,
-    CLIMB_DOWN = 8 
+    
+    NORTH_UP = 7,
+    SOUTH_UP = 8,
+    WEST_UP = 9,
+    EAST_UP = 10,
+
+    NORTH_DOWN = 11,
+    SOUTH_DOWN = 12,
+    WEST_DOWN = 13,
+    EAST_DOWN = 14
 };
 
 struct Edge
