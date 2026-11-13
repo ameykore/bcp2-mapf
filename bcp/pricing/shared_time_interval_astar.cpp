@@ -77,9 +77,9 @@ SharedTimeIntervalAStar::SharedTimeIntervalAStar(const Instance& instance, Probl
     {
         ZoneScopedNC("Allocate closed set", TRACY_COLOUR);
 
-        // closed_ = static_cast<void**>(std::malloc((map_.size() + 1) * sizeof(void*)));
-        closed_ = static_cast<void**>(std::malloc(2*(map_.size().n + 1) * sizeof(void*)));
-        ++closed_;
+        const Size64 num_entries = 2 * (static_cast<Size64>(map_.size()) + 1);
+
+        closed_ = static_cast<void**>(std::malloc(num_entries * sizeof(void*)));
     }
 
     // Reset data structures.
@@ -1270,7 +1270,7 @@ SharedTimeIntervalAStar::Label<feasible>* SharedTimeIntervalAStar::push(Label<fe
     // Get the new label.
     const auto nt = next->nt;
     const auto next_t = nt.t;
-    const auto index = closed_index(nt.n, next->orientation);
+    const auto index = closed_index(nt.n);
 
     // Check ordering.
 #ifdef DEBUG
@@ -1666,7 +1666,8 @@ Cost SharedTimeIntervalAStar::solve(const Agent a, Vector<NodeTime>& waypoints,
         // Clear data structures from the previous iteration.
         label_storage_.reset(Label<feasible>::data_size + once_off_bitset_size_ +
                              rectangle_bitset_size_);
-        std::memset(closed_, 0, 2*(map_.size() + 1) * sizeof(void*));
+        // std::memset(closed_, 0, 2*(map_.size() + 1) * sizeof(void*));
+        std::memset(closed_, 0, 2 * (static_cast<Size64>(map_.size()) + 1) * sizeof(void*));
         open<feasible>().clear();
     }
 
@@ -1769,7 +1770,9 @@ Cost SharedTimeIntervalAStar::solve(const Agent a, Vector<NodeTime>& waypoints,
                 if (nt == next_waypoint)
                 {
                     // Clear closed set and open set.
-                    std::memset(closed_ - 1, 0, (map_.size() + 1) * sizeof(void*));
+                    // std::memset(closed_ - 1, 0, (map_.size() + 1) * sizeof(void*));
+                    std::memset(closed_, 0, 2 * (static_cast<Size64>(map_.size()) + 1) * sizeof(void*));
+
                     open<feasible>().clear();
 
                     // Insert the nodetime back into the priority queue.

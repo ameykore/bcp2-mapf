@@ -189,10 +189,10 @@ class SharedTimeIntervalAStar
         return Node{-1, orientation};
     }
     // ADD YOUR NEW FUNCTION HERE
-    static inline Size64 closed_index(const Node n, const UInt8 orientation)
+    static inline Size64 closed_index(const Node n)
     {
 
-        return 2 * static_cast<Size64>(n.n + 1) + orientation;
+        return 2 * (static_cast<Size64>(n.n) + 1) + n.orientation;
     }
     constexpr static inline Bool is_end(const NodeTime nt)
     {
