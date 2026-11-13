@@ -108,7 +108,7 @@ class Map
         return (*this)[get_north(n)] + (*this)[get_south(n)] + (*this)[get_west(n)] +
                (*this)[get_east(n)];
     }
-    inline Direction get_direction(const Node n1, const Node n2) const
+    virtual Direction get_direction(const Node n1, const Node n2) const
     {
         // Same position.
         if (n1.n == n2.n)

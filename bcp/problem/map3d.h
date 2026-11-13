@@ -9,7 +9,7 @@ class Map3D : public Map {
     
     public:
         using Map::get_destination;
-        
+
         Map3D(Position width, Position height, Position elevation);
 
         Position elevation() const
@@ -79,7 +79,37 @@ class Map3D : public Map {
                     return Map::get_destination(n, d);
             }
         }
+        Direction get_direction(const Node n1, const Node n2) const override
+        {
+            const Int32 row = width();
+            const Int32 layer = static_cast<Int32>(width()) * height();
 
+            if (n2.n == n1.n - row + layer)
+                return Direction::NORTH_UP;
+
+            if (n2.n == n1.n + row + layer)
+                return Direction::SOUTH_UP;
+
+            if (n2.n == n1.n - 1 + layer)
+                return Direction::WEST_UP;
+
+            if (n2.n == n1.n + 1 + layer)
+                return Direction::EAST_UP;
+
+            if (n2.n == n1.n - row - layer)
+                return Direction::NORTH_DOWN;
+
+            if (n2.n == n1.n + row - layer)
+                return Direction::SOUTH_DOWN;
+
+            if (n2.n == n1.n - 1 - layer)
+                return Direction::WEST_DOWN;
+
+            if (n2.n == n1.n + 1 - layer)
+                return Direction::EAST_DOWN;
+
+            return Map::get_direction(n1, n2);
+        }
     private:
         void resize(Position width, Position height, Position elevation);
 

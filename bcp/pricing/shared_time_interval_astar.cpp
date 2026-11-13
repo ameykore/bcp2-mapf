@@ -1475,21 +1475,30 @@ void SharedTimeIntervalAStar::add_path(Label<feasible>* end)
 
             last = end->parent;
             NodeTime nt{last->nt.n, end->nt.t};
-            UInt8 next_orientation = last->orientation;
+
             DEBUG_ASSERT(nt.n == target_);
+
+            // The last entry records the final state without an outgoing action.
             path[nt.t] = Edge{nt.n, Direction::INVALID};
+
             for (auto label = (end->nt.t == last->nt.t ? last->parent : last); label;
-                 label = label->parent)
+                label = label->parent)
             {
                 const auto prev_nt = label->nt;
-                const Direction d = (prev_nt.n == nt.n && label->orientation != next_orientation) ? Direction::ROTATE: map_.get_direction(prev_nt.n, nt.n);
-                path[nt.t - 1] = Edge{prev_nt.n, map_.get_direction(prev_nt.n, nt.n)};
+
+                // Recover the action connecting the two complete robot states.
+                const Direction d = map_.get_direction(prev_nt.n, nt.n);
+
+                // Store the starting state and the action taken from it.
+                path[nt.t - 1] = Edge{prev_nt.n, d};
+
+                // Fill any waiting before that action.
                 for (Time t = nt.t - 2; t >= prev_nt.t; --t)
                 {
                     path[t] = Edge{prev_nt.n, Direction::WAIT};
                 }
+
                 nt = prev_nt;
-                next_orientation = label->orientation;  
             }
         }
 
