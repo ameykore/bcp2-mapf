@@ -1115,63 +1115,115 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
     // Push to four directions.
     const auto current_nt = current->nt;
     const auto current_n = current_nt.n;
-    const auto orientation = current->orientation;
-    // Orientation 0: Y-axis movement
+    const auto orientation = current_n.orientation;
+    
+    // Instance stores a Map3D.
+    const auto& map = instance_.map;
+
+    // Orientation 0: north/south movement, including climbing.
     if (orientation == 0)
     {
-        if (const auto next_n = map_.get_north(current_n); map_[next_n])
+        const Node north = map.get_destination(current_n, Direction::NORTH);
+        if (north.n >= 0 && north.n < map.size() && map[north])
         {
             generate_nodetimes<feasible, towards_end>(
-                next_n, Direction::NORTH, current->orientation, current);
+                north, Direction::NORTH, north.orientation, current);
         }
 
-        if (const auto next_n = map_.get_south(current_n); map_[next_n])
+        const Node north_up =
+            map.get_destination(current_n, Direction::NORTH_UP);
+        if (north_up.n >= 0 && north_up.n < map.size() && map[north_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                next_n, Direction::SOUTH, current->orientation, current);
+                north_up, Direction::NORTH_UP, north_up.orientation, current);
+        }
+
+        const Node north_down =
+            map.get_destination(current_n, Direction::NORTH_DOWN);
+        if (north_down.n >= 0 && north_down.n < map.size() && map[north_down])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                north_down, Direction::NORTH_DOWN, north_down.orientation, current);
+        }
+
+        const Node south = map.get_destination(current_n, Direction::SOUTH);
+        if (south.n >= 0 && south.n < map.size() && map[south])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                south, Direction::SOUTH, south.orientation, current);
+        }
+
+        const Node south_up =
+            map.get_destination(current_n, Direction::SOUTH_UP);
+        if (south_up.n >= 0 && south_up.n < map.size() && map[south_up])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                south_up, Direction::SOUTH_UP, south_up.orientation, current);
+        }
+
+        const Node south_down =
+            map.get_destination(current_n, Direction::SOUTH_DOWN);
+        if (south_down.n >= 0 && south_down.n < map.size() && map[south_down])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                south_down, Direction::SOUTH_DOWN, south_down.orientation, current);
         }
     }
-    // Orientation 1: X-axis movement
+    // Orientation 1: west/east movement, including climbing.
     else
     {
-        DEBUG_ASSERT(orientation == 1);
-
-        if (const auto next_n = map_.get_west(current_n); map_[next_n])
+        const Node west = map.get_destination(current_n, Direction::WEST);
+        if (west.n >= 0 && west.n < map.size() && map[west])
         {
             generate_nodetimes<feasible, towards_end>(
-                next_n, Direction::WEST, current->orientation, current);
+                west, Direction::WEST, west.orientation, current);
         }
 
-        if (const auto next_n = map_.get_east(current_n); map_[next_n])
+        const Node west_up =
+            map.get_destination(current_n, Direction::WEST_UP);
+        if (west_up.n >= 0 && west_up.n < map.size() && map[west_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                next_n, Direction::EAST, current->orientation, current);
+                west_up, Direction::WEST_UP, west_up.orientation, current);
+        }
+
+        const Node west_down =
+            map.get_destination(current_n, Direction::WEST_DOWN);
+        if (west_down.n >= 0 && west_down.n < map.size() && map[west_down])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                west_down, Direction::WEST_DOWN, west_down.orientation, current);
+        }
+
+        const Node east = map.get_destination(current_n, Direction::EAST);
+        if (east.n >= 0 && east.n < map.size() && map[east])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                east, Direction::EAST, east.orientation, current);
+        }
+
+        const Node east_up =
+            map.get_destination(current_n, Direction::EAST_UP);
+        if (east_up.n >= 0 && east_up.n < map.size() && map[east_up])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                east_up, Direction::EAST_UP, east_up.orientation, current);
+        }
+
+        const Node east_down =
+            map.get_destination(current_n, Direction::EAST_DOWN);
+        if (east_down.n >= 0 && east_down.n < map.size() && map[east_down])
+        {
+            generate_nodetimes<feasible, towards_end>(
+                east_down, Direction::EAST_DOWN, east_down.orientation, current);
         }
     }
-    // if (const auto next_n = map_.get_north(current_n); map_[next_n])
-    // {
-    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::NORTH, current);
-    // }
-    // if (const auto next_n = map_.get_south(current_n); map_[next_n])
-    // {
-    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::SOUTH, current);
-    // }
-    // if (const auto next_n = map_.get_west(current_n); map_[next_n])
-    // {
-    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::WEST, current);
-    // }
-    // if (const auto next_n = map_.get_east(current_n); map_[next_n])
-    // {
-    //     generate_nodetimes<feasible, towards_end>(next_n, Direction::EAST, current);
-    // }
 
-    // Generate a rotation successor.
-    DEBUG_ASSERT(orientation <= 1);
+    // Rotation keeps the cell and changes orientation through get_destination().
+    const Node rotated = map.get_destination(current_n, Direction::ROTATE);
 
-    const UInt8 rotated_orientation =
-        static_cast<UInt8>(1 - orientation);
-
-    generate_nodetimes<feasible, towards_end>(current_n,Direction::ROTATE,rotated_orientation,current);
+    generate_nodetimes<feasible, towards_end>(
+        rotated, Direction::ROTATE, rotated.orientation, current);
 
     // Push to the waypoint if at the correct location.
     if constexpr (!towards_end)

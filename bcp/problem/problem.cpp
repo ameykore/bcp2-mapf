@@ -190,6 +190,7 @@ void Problem::solve(const Real64 time_limit)
                 // const auto new_lb = COST_NAN;
 
                 // Generate columns.
+                // USE_SHARED_TIME_INTERVAL_ASTAR_PRICER
                 const auto new_lb = pricer_.run();
 
                 // Update the node lower bound.
