@@ -142,7 +142,7 @@ class Map
                          static_cast<Int32>(d == Direction::NORTH)) +
                (static_cast<Int32>(d == Direction::EAST) - static_cast<Int32>(d == Direction::WEST));
     }
-    inline Node get_destination(const Node n, const Direction d) const
+    virtual inline Node get_destination(const Node n, const Direction d) const
     {
         DEBUG_ASSERT(d == Direction::NORTH || d == Direction::SOUTH || d == Direction::EAST ||
                      d == Direction::WEST || d == Direction::WAIT || d == Direction::ROTATE);

@@ -216,7 +216,7 @@ class SharedTimeIntervalAStar
     template <Bool feasible, Bool towards_end>
     void generate_start();
     template <Bool feasible, Bool towards_end>
-    void generate_nodetimes(const Node next_n, const Direction d, const UInt8 next_orientation, Label<feasible>* current);
+    void generate_nodetimes(const Node next_n, const Direction d, Label<feasible>* current);
     template <Bool feasible, Bool towards_end>
     void generate_waypoint(Label<feasible>* current);
     template <Bool feasible>

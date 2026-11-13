@@ -8,6 +8,8 @@ class Map3D : public Map {
         // FOR THAT we need some binding script          
     
     public:
+        using Map::get_destination;
+        
         Map3D(Position width, Position height, Position elevation);
 
         Position elevation() const
@@ -48,7 +50,7 @@ class Map3D : public Map {
             return (turn + 90) % 360;
         }
 
-        inline Node get_destination(const Node n, const Direction d) const
+        Node get_destination(const Node n, const Direction d) const override
         {
             const Int32 row = width();
             const Int32 layer = static_cast<Int32>(width()) * height();

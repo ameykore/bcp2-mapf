@@ -248,7 +248,6 @@ void SharedTimeIntervalAStar::generate_start()
 
     // Push into the priority queue.
     next->nt = next_nt;
-    next->orientation = start_orientation_;
     next = push<feasible, false>(next);
 
     // Print.
@@ -290,9 +289,7 @@ void SharedTimeIntervalAStar::generate_start()
 
 //next A* state being created
 template <Bool feasible, Bool towards_end>
-void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direction d,  
-                                                 const UInt8 next_orientation,
-                                                 Label<feasible>* current)
+void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direction d, Label<feasible>* current)
 {
     // ZoneScopedC(TRACY_COLOUR);
 
@@ -420,7 +417,6 @@ void SharedTimeIntervalAStar::generate_nodetimes(const Node next_n, const Direct
         // Allocate memory for the label.
         auto next = new (label_storage_.get_buffer<false, false>()) Label<feasible>;
         std::memcpy(next, current, label_storage_.object_size());
-        next->orientation = next_orientation;
 
         // Calculate the g value.
         next->g += wait_cost + default_edge_cost<feasible>() + move_interval->cost;
@@ -1127,7 +1123,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (north.n >= 0 && north.n < map.size() && map[north])
         {
             generate_nodetimes<feasible, towards_end>(
-                north, Direction::NORTH, north.orientation, current);
+                north, Direction::NORTH, current);
         }
 
         const Node north_up =
@@ -1135,7 +1131,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (north_up.n >= 0 && north_up.n < map.size() && map[north_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                north_up, Direction::NORTH_UP, north_up.orientation, current);
+                north_up, Direction::NORTH_UP, current);
         }
 
         const Node north_down =
@@ -1143,14 +1139,14 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (north_down.n >= 0 && north_down.n < map.size() && map[north_down])
         {
             generate_nodetimes<feasible, towards_end>(
-                north_down, Direction::NORTH_DOWN, north_down.orientation, current);
+                north_down, Direction::NORTH_DOWN, current);
         }
 
         const Node south = map.get_destination(current_n, Direction::SOUTH);
         if (south.n >= 0 && south.n < map.size() && map[south])
         {
             generate_nodetimes<feasible, towards_end>(
-                south, Direction::SOUTH, south.orientation, current);
+                south, Direction::SOUTH, current);
         }
 
         const Node south_up =
@@ -1158,7 +1154,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (south_up.n >= 0 && south_up.n < map.size() && map[south_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                south_up, Direction::SOUTH_UP, south_up.orientation, current);
+                south_up, Direction::SOUTH_UP, current);
         }
 
         const Node south_down =
@@ -1166,7 +1162,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (south_down.n >= 0 && south_down.n < map.size() && map[south_down])
         {
             generate_nodetimes<feasible, towards_end>(
-                south_down, Direction::SOUTH_DOWN, south_down.orientation, current);
+                south_down, Direction::SOUTH_DOWN, current);
         }
     }
     // Orientation 1: west/east movement, including climbing.
@@ -1176,7 +1172,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (west.n >= 0 && west.n < map.size() && map[west])
         {
             generate_nodetimes<feasible, towards_end>(
-                west, Direction::WEST, west.orientation, current);
+                west, Direction::WEST, current);
         }
 
         const Node west_up =
@@ -1184,7 +1180,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (west_up.n >= 0 && west_up.n < map.size() && map[west_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                west_up, Direction::WEST_UP, west_up.orientation, current);
+                west_up, Direction::WEST_UP, current);
         }
 
         const Node west_down =
@@ -1192,14 +1188,14 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (west_down.n >= 0 && west_down.n < map.size() && map[west_down])
         {
             generate_nodetimes<feasible, towards_end>(
-                west_down, Direction::WEST_DOWN, west_down.orientation, current);
+                west_down, Direction::WEST_DOWN, current);
         }
 
         const Node east = map.get_destination(current_n, Direction::EAST);
         if (east.n >= 0 && east.n < map.size() && map[east])
         {
             generate_nodetimes<feasible, towards_end>(
-                east, Direction::EAST, east.orientation, current);
+                east, Direction::EAST, current);
         }
 
         const Node east_up =
@@ -1207,7 +1203,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (east_up.n >= 0 && east_up.n < map.size() && map[east_up])
         {
             generate_nodetimes<feasible, towards_end>(
-                east_up, Direction::EAST_UP, east_up.orientation, current);
+                east_up, Direction::EAST_UP, current);
         }
 
         const Node east_down =
@@ -1215,7 +1211,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
         if (east_down.n >= 0 && east_down.n < map.size() && map[east_down])
         {
             generate_nodetimes<feasible, towards_end>(
-                east_down, Direction::EAST_DOWN, east_down.orientation, current);
+                east_down, Direction::EAST_DOWN, current);
         }
     }
 
@@ -1223,7 +1219,7 @@ void SharedTimeIntervalAStar::expand(Label<feasible>* current)
     const Node rotated = map.get_destination(current_n, Direction::ROTATE);
 
     generate_nodetimes<feasible, towards_end>(
-        rotated, Direction::ROTATE, rotated.orientation, current);
+        rotated, Direction::ROTATE, current);
 
     // Push to the waypoint if at the correct location.
     if constexpr (!towards_end)
@@ -1555,9 +1551,8 @@ Cost SharedTimeIntervalAStar::solve(const Agent a, Vector<NodeTime>& waypoints,
     // start_ = NodeTime{instance_.agents[a].start, 0};
     // target_ = instance_.agents[a].target;
     a_ = a;
-    start_ = NodeTime{instance_.agents[a].start.n, 0};
-    start_orientation_ = instance_.agents[a].start.orientation;
-    target_ = instance_.agents[a].target.n;
+    start_ = NodeTime{instance_.agents[a].start, 0};
+    target_ = instance_.agents[a].target;
     waypoints_ = &waypoints;
     constant_ = constant;
     intervals_ = &intervals;
